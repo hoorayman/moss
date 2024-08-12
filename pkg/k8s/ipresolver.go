@@ -35,7 +35,7 @@ var (
 	podMetrics = promauto.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "moss_pods",
 		Help: "Number of pods in the cluster",
-	}, []string{"namespace", "pod_name", "status"})
+	}, []string{"id", "title", "subTitle", "namespace", "pod_name", "status", "icon"})
 )
 
 type clusterSnapshot struct {
@@ -346,9 +346,13 @@ func (resolver *K8sIPResolver) handlePodWatchEvent(podEvent *watch.Event) {
 		}
 		clearPodMetrics(pod.Namespace, pod.Name)
 		podMetrics.With(prometheus.Labels{
+			"id":        string(pod.UID),
+			"title":     pod.Namespace + "/" + pod.Name,
+			"subTitle":  pod.Name,
 			"namespace": pod.Namespace,
 			"pod_name":  pod.Name,
 			"status":    string(pod.Status.Phase),
+			"icon":      "cloud",
 		}).Set(1)
 	case watch.Deleted:
 		if val, ok := podEvent.Object.(*v1.Pod); ok {
